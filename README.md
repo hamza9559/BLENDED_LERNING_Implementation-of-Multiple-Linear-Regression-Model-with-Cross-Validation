@@ -15,70 +15,59 @@ To write a program to predict the price of cars using a multiple linear regressi
 4. Visualization: Plot the actual vs predicted car prices to visually compare how well the model predicts the prices.
 
 ## Program:
-```
+```c
 /*
 Program to implement the multiple linear regression model for predicting car prices with cross-validation.
-Developed by: HAMZA FAROOQUE 
-RegisterNumber:  212223040054
+Developed by: HAMZA FAROOQUE
+RegisterNumber: 212223040054
 */
-
-# Import necessary libraries
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import KFold, cross_val_predict
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np
 
-# Sample data - car attributes (Age, Mileage, Horsepower) and Price
-data = {
-    'Age': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    'Mileage': [5000, 15000, 25000, 35000, 45000, 55000, 65000, 75000, 85000, 95000],
-    'Horsepower': [100, 110, 120, 130, 140, 150, 160, 170, 180, 190],
-    'Price': [20000, 18500, 17500, 16500, 15500, 14500, 13500, 12500, 11500, 10500]
-}
+# Load the dataset
+file_path = 'encoded_car_data.csv'
+df = pd.read_csv(file_path)
 
-# Convert the data to a DataFrame
-df = pd.DataFrame(data)
+# Select relevant features and target variable
+X = df.drop(columns=['price'])  # All columns except 'price'
+y = df['price']  # Target variable
 
-# Feature variables (Age, Mileage, Horsepower)
-X = df[['Age', 'Mileage', 'Horsepower']]
+# Split the dataset (not strictly required for cross-validation, but good for validation outside cross-validation)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Target variable (Price)
-y = df['Price']
-
-# ----- Multiple Linear Regression with Cross-Validation -----
-# Create a Linear Regression model
+# Train the Multiple Linear Regression model
 model = LinearRegression()
+model.fit(X_train, y_train)
 
-# Implement K-Fold Cross-Validation (5 splits)
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
+# Evaluate on test set
+y_pred = model.predict(X_test)
+print("Test Set Evaluation:")
+print("Mean Squared Error (MSE):", mean_squared_error(y_test, y_pred))
+print("R-squared:", r2_score(y_test, y_pred))
 
-# Perform cross-validation and get the predicted values for each fold
-y_pred = cross_val_predict(model, X, y, cv=kf)
+# Cross-Validation
+cv_scores = cross_val_score(model, X, y, cv=5, scoring='neg_mean_squared_error')  # 5-fold CV
+cv_mse = -cv_scores  # Convert negative MSE to positive
+print("\nCross-Validation Results:")
+print("MSE for each fold:", cv_mse)
+print("Mean MSE:", np.mean(cv_mse))
+print("Standard Deviation of MSE:", np.std(cv_mse))
 
-# Calculate the Mean Squared Error (MSE)
-mse = mean_squared_error(y, y_pred)
-print(f"Mean Squared Error: {mse}")
-
-# ----- Visualization: Actual vs Predicted Prices -----
-plt.scatter(y, y_pred, color='blue', label='Predicted Prices')
-plt.plot([min(y), max(y)], [min(y), max(y)], color='red', linewidth=2, label='Perfect Prediction Line')
-
-plt.xlabel('Actual Prices')
-plt.ylabel('Predicted Prices')
-plt.title('Actual vs Predicted Car Prices (Multiple Linear Regression)')
-plt.legend()
-plt.show()
+# Cross-Validation R-squared
+cv_r2_scores = cross_val_score(model, X, y, cv=5, scoring='r2')
+print("\nR-squared for each fold:", cv_r2_scores)
+print("Mean R-squared:", np.mean(cv_r2_scores))
+print("Standard Deviation of R-squared:", np.std(cv_r2_scores))
 
 ```
 
 ## Output:
-```
-Mean Squared Error: 34172.36073646378
 
-```
-![image](https://github.com/user-attachments/assets/6e81c59b-8f69-4cb5-be2f-4680e63d3d1e)
+![image](https://github.com/user-attachments/assets/da48f9c0-55b0-40f5-ba83-b97e02fbaacc)
+
 
 
 ## Result:
